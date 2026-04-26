@@ -1,0 +1,28 @@
+{
+    "name": "byte8/module-stock-radar-hyva",
+    "description": "Hyva theme compatibility for Byte8 Stock Radar — Alpine.js back-in-stock form, no jQuery/RequireJS.",
+    "require": {
+        "php": "~8.2.0||~8.3.0||~8.4.0||~8.5.0",
+        "byte8/module-stock-radar": "*",
+        "hyva-themes/magento2-theme-module": "*"
+    },
+    "type": "magento2-module",
+    "license": [
+        "proprietary"
+    ],
+    "authors": [
+        {
+            "name": "Byte8 Ltd",
+            "email": "support@byte8.io"
+        }
+    ],
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Byte8\\StockRadarHyva\\": ""
+        }
+    },
+    "version": "1.0.0"
+}

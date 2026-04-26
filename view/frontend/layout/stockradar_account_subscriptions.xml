@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Byte8 Ltd. All rights reserved.
+ * See LICENSE.txt for license details.
+ *
+ * Swaps the Luma table template for a Hyva (Tailwind) variant. Block class
+ * stays the same — only template path changes.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="byte8.stockradar.account.subscriptions"
+                        template="Byte8_StockRadarHyva::account/subscriptions.phtml"/>
+    </body>
+</page>

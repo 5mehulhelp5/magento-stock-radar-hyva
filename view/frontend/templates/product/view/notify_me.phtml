@@ -1,0 +1,112 @@
+<?php
+/**
+ * Copyright © Byte8 Ltd. All rights reserved.
+ * See LICENSE.txt for license details.
+ *
+ * Hyva-themed back-in-stock subscribe form. Alpine + Tailwind only — no
+ * jQuery, no RequireJS, no knockout. Reads variant SKU updates from the
+ * `private-content-loaded` / Alpine $store pattern Hyva ships with.
+ *
+ * @var \Byte8\StockRadar\Block\Product\View\NotifyMe $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+if (!$block->isAvailable()) {
+    return;
+}
+
+$endpoint = $escaper->escapeUrl($block->getSubscribeUrl());
+$defaultSku = $escaper->escapeJs($block->getProductSku());
+$prefillEmail = $escaper->escapeJs($block->getCustomerEmail());
+$variantSkuMap = $block->getVariantSkuMapJson();
+?>
+<div
+    x-data="{
+        endpoint: '<?= /* @noEscape */ $endpoint ?>',
+        sku: '<?= /* @noEscape */ $defaultSku ?>',
+        email: '<?= /* @noEscape */ $prefillEmail ?>',
+        variantSkuMap: <?= /* @noEscape */ $variantSkuMap ?>,
+        loading: false,
+        status: null,
+        message: null,
+        async submit() {
+            this.loading = true;
+            this.status = null;
+            this.message = null;
+            try {
+                const formData = new FormData();
+                formData.append('sku', this.sku);
+                formData.append('email', this.email);
+                formData.append('form_key', hyva.getFormKey());
+                const res = await fetch(this.endpoint, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json().catch(() => ({}));
+                this.status = res.ok && data.success ? 'success' : 'error';
+                this.message = data.message || (res.ok ? '' : '<?= $escaper->escapeJs((string) __('Subscription failed.')) ?>');
+                if (this.status === 'success') this.email = '';
+            } catch (e) {
+                this.status = 'error';
+                this.message = '<?= $escaper->escapeJs((string) __('Subscription failed.')) ?>';
+            } finally {
+                this.loading = false;
+            }
+        }
+    }"
+    x-init="
+        window.addEventListener('byte8:stockradar:variant', (e) => { if (e.detail) sku = e.detail; });
+        window.addEventListener('private-content-loaded', () => {
+            // Hyva's swatch picker sets a hidden input named 'selected_configurable_option'
+            // when all options are chosen. Watch it and resolve the variant SKU.
+            const hidden = document.querySelector('input[name=selected_configurable_option]');
+            if (!hidden) return;
+            const update = () => {
+                const id = parseInt(hidden.value, 10);
+                if (id && variantSkuMap[id]) {
+                    sku = variantSkuMap[id];
+                    window.dispatchEvent(new CustomEvent('byte8:stockradar:variant', { detail: variantSkuMap[id] }));
+                }
+            };
+            new MutationObserver(update).observe(hidden, { attributes: true, attributeFilter: ['value'] });
+            hidden.addEventListener('change', update);
+            update();
+        });
+    "
+    class="byte8-stock-radar mt-4 p-4 border border-gray-200 rounded-md bg-gray-50"
+>
+    <h3 class="text-base font-semibold mb-2">
+        <?= $escaper->escapeHtml(__('Notify me when back in stock')) ?>
+    </h3>
+    <form @submit.prevent="submit()" class="flex flex-col gap-2 sm:flex-row sm:items-start">
+        <label for="byte8-stock-radar-email" class="sr-only">
+            <?= $escaper->escapeHtml(__('Email address')) ?>
+        </label>
+        <input
+            id="byte8-stock-radar-email"
+            type="email"
+            required
+            x-model="email"
+            :disabled="loading"
+            placeholder="<?= $escaper->escapeHtmlAttr(__('you@example.com')) ?>"
+            class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm"
+        />
+        <button
+            type="submit"
+            :disabled="loading"
+            class="inline-flex justify-center items-center bg-primary text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
+        >
+            <span x-show="!loading"><?= $escaper->escapeHtml(__('Notify me')) ?></span>
+            <span x-show="loading"><?= $escaper->escapeHtml(__('…')) ?></span>
+        </button>
+    </form>
+    <div
+        x-show="message"
+        :class="status === 'success' ? 'text-green-700' : 'text-red-700'"
+        class="mt-2 text-sm"
+        role="status"
+        aria-live="polite"
+        x-text="message"
+    ></div>
+</div>

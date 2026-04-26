@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Byte8 Ltd. All rights reserved.
+ * See LICENSE.txt for license details.
+ *
+ * Replaces the Luma RequireJS-driven template with a Hyva Alpine variant.
+ * The block class stays the same — only the template path changes.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="byte8.stockradar.notify_me"
+                        template="Byte8_StockRadarHyva::product/view/notify_me.phtml"/>
+    </body>
+</page>
